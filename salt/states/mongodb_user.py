@@ -26,6 +26,7 @@ def present(
     host="localhost",
     port=27017,
     authdb=None,
+    ssl=False,
     roles=None,
 ):
     """
@@ -57,6 +58,9 @@ def present(
 
     authdb
         The database in which to authenticate
+
+    ssl
+        Use ssl/tls to connect
 
     roles
         The roles assigned to user specified with the ``name`` parameter
@@ -100,7 +104,7 @@ def present(
 
     # check if user exists
     users = __salt__["mongodb.user_find"](
-        name, user, password, host, port, database, authdb
+        name, user, password, host, port, database, authdb, ssl
     )
     if len(users) > 0:
         # check for errors returned in users e.g.
@@ -141,6 +145,7 @@ def present(
                 port,
                 database=database,
                 authdb=authdb,
+                ssl=ssl,
                 roles=roles,
             )
         return ret
@@ -167,7 +172,7 @@ def present(
         host,
         port,
         database=database,
-        authdb=authdb,
+        ssl=ssl,
         roles=roles,
     ):
         ret["comment"] = "User {0} has been created".format(name)
@@ -180,7 +185,7 @@ def present(
 
 
 def absent(
-    name, user=None, password=None, host=None, port=None, database="admin", authdb=None
+    name, user=None, password=None, host=None, port=None, database="admin", authdb=None, ssl=False
 ):
     """
     Ensure that the named user is absent
@@ -206,12 +211,15 @@ def absent(
 
     authdb
         The database in which to authenticate
+
+    ssl
+        Use ssl/tls to connect
     """
     ret = {"name": name, "changes": {}, "result": True, "comment": ""}
 
     # check if user exists and remove it
     user_exists = __salt__["mongodb.user_exists"](
-        name, user, password, host, port, database=database, authdb=authdb
+        name, user, password, host, port, database=database, authdb=authdb, ssl=ssl
     )
     if user_exists is True:
         if __opts__["test"]:
@@ -221,7 +229,7 @@ def absent(
             )
             return ret
         if __salt__["mongodb.user_remove"](
-            name, user, password, host, port, database=database, authdb=authdb
+            name, user, password, host, port, database=database, authdb=authdb, ssl=ssl
         ):
             ret["comment"] = "User {0} has been removed".format(name)
             ret["changes"][name] = "Absent"
